@@ -1,0 +1,35 @@
+{
+  "name": "upyun-electron",
+  "version": "1.0.0",
+  "description": "upyun electron client",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "build": "electron-packager ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crazyhl/upyun-electron.git"
+  },
+  "keywords": [
+    "upyun",
+    "electon",
+    "upload",
+    "filemanager"
+  ],
+  "author": "M1racle",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/crazyhl/upyun-electron/issues"
+  },
+  "homepage": "https://github.com/crazyhl/upyun-electron#readme",
+  "devDependencies": {
+    "electron": "^5.0.6",
+    "electron-packager": "^14.0.1"
+  },
+  "dependencies": {
+    "upyun": "^3.3.9",
+    "uuid": "^3.3.2"
+  }
+}

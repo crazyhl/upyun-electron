@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>又拍云上传工具 Electron 版</title>
+
+    <link rel="stylesheet" href="./css/bulma.css">
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div id="app">
+        <div id="drag-file" v-on:dragover.prevent v-on:drop="fileDrop($event)">
+                <ul id="upload-file-list" v-if="uploadFileList.length">
+                    <li v-for="file in uploadFileList">
+                        <div class="level">
+                            <div v-if="file.fileInfo.type.startsWith('image')" class="column is-one-fifth">
+                                <img class="preview" :src="file.fileInfo.path" />
+                            </div>
+                            <div class="column">
+                                {{ file.fileInfo.path }}<br />
+                                {{ file.cdnUrl }}
+                            </div>
+                            <div class="column is-one-fifth" :class="file.class">{{file.statusText}}</div>
+                        </div>
+                    </li>
+                </ul>
+                <p id="drag-tips" v-else>Drag your upload file!</p>
+        </div>
+    </div>
+
+    <script src="./js/vue.js"></script>
+    <script>
+        const {ipcRenderer}=require('electron')
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                nodeVersion: process.versions.node,
+                chromeVersion: process.versions.chrome,
+                electronVerson: process.versions.electron,
+                uploadFileList: [],
+                uploadFileNameList: [],
+            },
+            methods: {
+                fileDrop: function (eveent) {
+                    for (let f of eveent.dataTransfer.files) {
+                        console.log('The file(s) you dragged: ', f)
+                        if (this.uploadFileNameList.indexOf(f.path) >= 0) {
+                            continue;
+                        }
+                        this.uploadFileList.push({
+                            'fileInfo': f,
+                            'status': 0,
+                            'statusText': '准备上传',
+                            'class': '',
+                            'cdnurl': '',
+                        });
+                        this.uploadFileNameList.push(f.path);
+                        // 通知主进程 有文件被添加了
+                        ipcRenderer.send('fileAdd', f.path)
+                    }
+                },
+            },
+        })
+
+        // 测试代码 用来测试 vue 调用 外部js 代码
+        function test() {
+            alert('abc');
+            app._data.nodeVersion = 123;
+        }
+        ipcRenderer.on('receiveNotice', function (event, filePath, status, className, cdnUrl = '') {
+            let index = app.uploadFileNameList.indexOf(filePath);
+            if (index >= 0) {
+                app.uploadFileList[index].status = status;
+                let statusText = '准备上传';
+                switch(status) {
+                    case 1:
+                        statusText = '上传中';
+                        break;
+                    case 2:
+                        statusText = '上传成功';
+                        break;
+                    case 3:
+                        statusText = '排队中';
+                        break;
+                    case -2:
+                        statusText = '上传失败';
+                        break;
+                    case -1:
+                        statusText = '这不是个文件';
+                        break;
+                    case 0:
+                    default:
+                        statusText = '准备上传';
+                        break;
+                }
+                app.uploadFileList[index].statusText = statusText;
+                app.uploadFileList[index].class = className;
+                app.uploadFileList[index].cdnUrl = cdnUrl;
+            }
+        });
+    </script>
+</body>
+
+</html>
